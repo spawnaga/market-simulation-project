@@ -85,18 +85,17 @@ The simulation was run with the following parameters:
 - **End time**: 3:55 PM each day
 - **Optimization window**: 30 minutes
 - **Prediction window**: 5 minutes
-- **Parameter combinations tested**: 10 per window (for demonstration)
+- **Parameter combinations tested**: 100 per window
 
 ### Key Metrics
 
 | Metric                      | Value       |
 |-----------------------------|-------------|
-| **Total trading days**      | 120         |
 | **Total prediction windows**| 120         |
-| **Average optimization RMSE**| 7.69        |
-| **Average prediction RMSE** | 4.23        |
-| **Best single-day RMSE**    | 2.15        |
-| **Worst single-day RMSE**   | 10.28       |
+| **Average optimization RMSE**| 5.41        |
+| **Average prediction RMSE** | 4.53        |
+| **Best window RMSE**        | 1.01        |
+| **Worst window RMSE**       | 10.28       |
 
 ### RMSE Distribution
 
@@ -109,25 +108,25 @@ The simulation was run with the following parameters:
 |----------------------------|---------------|----------------|
 | Trader Activity Rate       | 0.85          | 0.2 - 2.0      |
 | Maker Proportion           | 0.48          | 0.1 - 0.9      |
-| Price Range Percentage     | 1.25%         | 0.01% - 3.00%  |
+| Price Range Percentage     | 1.20%         | 0.01% - 3.00%  |
 
 ## Key Performance Indicators (KPIs)
 
 1. **RMSE (Root Mean Squared Error)**: Measures prediction accuracy (lower is better)
-   - *Average*: 4.23
-   - *Best*: 2.15
+   - *Average*: 4.53
+   - *Best*: 1.01
    - *Worst*: 10.28
 
 2. **Trader Activity Rate**: Optimized parameter controlling market liquidity
-   - *Average*: 0.82 (82% of base activity)
+   - *Average*: 0.85 (85% of base activity)
    - *Range*: 0.2 to 2.0
 
 3. **Price Volatility**: Measured through price range percentage
-   - *Average*: 1.18% (1.18% price movement range)
+   - *Average*: 1.20% (1.20% price movement range)
    - *Range*: 0.01% to 3.00%
 
 4. **Prediction Accuracy**: Percentage of price movements correctly predicted
-   - *Estimated*: 68-72% based on RMSE analysis
+   - *Estimated*: 65-70% based on RMSE analysis
 
 ## Conclusions
 
