@@ -34,7 +34,7 @@ def main():
     print("Running enhanced simulation with multiple windows...")
     window_size = 30  # 30 minutes for parameter optimization
     prediction_size = 5  # 5 minutes for prediction
-    num_simulations = 10  # Test 10 parameter combinations (for quick test)
+    num_simulations = 5  # Test 5 parameter combinations (for quick test)
 
     rmse_results = simulator.run_multiple_simulations(df, window_size, prediction_size, num_simulations)
 

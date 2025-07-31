@@ -27,6 +27,7 @@ class OrderBook:
         self.imbalance = 0
         self.trader_activity_rate = 1.0
         self.proportion_maker = 0.5
+        self.price_range_percent = 0.01  # Default: 1% range (0.01 * 100%)
 
     def place_order(self, price, quantity, is_buy):
         """Place an order in the order book"""
@@ -194,8 +195,9 @@ class Trader:
 
         is_maker = self.rng.random() < self.order_book.proportion_maker
 
-        # Match C# logic: +/-1% of lastPrice with random factor
-        rand_factor = 1.0 + (self.rng.random() * 0.02 - 0.01)  # +/-1% range
+        # Make price range percentage a parameter (0.01% to 3.00%)
+        price_range_percent = self.order_book.price_range_percent
+        rand_factor = 1.0 + (self.rng.random() * price_range_percent - price_range_percent / 2)
         rand_price = int(last_price * rand_factor + 0.5 * np.sign(rand_factor - 1))
 
         if is_maker:
@@ -267,6 +269,7 @@ class MarketSimulator:
         """Run market simulation with given parameters"""
         self.order_book.trader_activity_rate = params['trader_activity_rate']
         self.order_book.proportion_maker = params['proportion_maker']
+        self.order_book.price_range_percent = params.get('price_range_percent', 0.01)
 
         predictions = []
         current_price = df['open'].iloc[0]
@@ -326,6 +329,7 @@ class MarketSimulator:
         # Generate parameter grid
         activity_rates = np.linspace(0.2, 2.0, num_simulations)
         maker_proportions = np.linspace(0.1, 0.9, num_simulations)
+        price_ranges = np.linspace(0.0001, 0.03, num_simulations)  # 0.01% to 3.00%
 
         while current_index + window_size + prediction_size <= len(df):
             # Extract current window for optimization
@@ -338,7 +342,8 @@ class MarketSimulator:
             for i in range(num_simulations):
                 params = {
                     'trader_activity_rate': activity_rates[i],
-                    'proportion_maker': maker_proportions[i]
+                    'proportion_maker': maker_proportions[i],
+                    'price_range_percent': price_ranges[i]
                 }
 
                 # Run simulation with these parameters
