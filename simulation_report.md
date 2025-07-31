@@ -91,7 +91,7 @@ The simulation was run with the following parameters:
 
 | Metric                      | Value       |
 |-----------------------------|-------------|
-| **Total prediction windows**| 852         |
+| **Total prediction windows**| 846         |
 | **Average optimization RMSE**| 5.41        |
 | **Average prediction RMSE** | 4.53        |
 | **Best window RMSE**        | 1.01        |
@@ -202,10 +202,10 @@ There was a discrepancy in the window calculations:
 - **Window Progression**: Moves forward 35 minutes for each iteration
 - **Mathematical Limit**: 4260 minutes / 35 minutes per window ≈ 120 windows
 
-**New Sliding Window Approach (852 windows):**
+**New Sliding Window Approach (846 windows):**
 - **Window Structure**: 5 minutes (prediction window only)
 - **Window Progression**: Moves forward 5 minutes for each iteration
-- **Mathematical Limit**: 4260 minutes / 5 minutes per window = 852 windows
+- **Mathematical Limit**: (4260 - 30) minutes / 5 minutes per window = 846 windows
 
 The sliding window approach provides more granular predictions by overlapping windows, allowing the simulation to make predictions every 5 minutes based on the most recent 30 minutes of data.
 

@@ -324,15 +324,15 @@ class MarketSimulator:
             List of RMSE values for each prediction window
         """
         rmse_results = []
-        current_index = window_size
+        current_index = window_size  # Start with enough data for initial optimization
 
         # Generate parameter grid
         activity_rates = np.linspace(0.2, 2.0, num_simulations)
         maker_proportions = np.linspace(0.1, 0.9, num_simulations)
         price_ranges = np.linspace(0.0001, 0.03, num_simulations)  # 0.01% to 3.00%
 
-        while current_index + window_size + prediction_size <= len(df):
-            # Extract current window for optimization
+        while current_index + prediction_size <= len(df):
+            # Extract current window for optimization (look back window_size minutes)
             optimization_window = df.iloc[current_index - window_size:current_index]
 
             best_rmse = float('inf')
