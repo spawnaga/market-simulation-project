@@ -81,3 +81,7 @@ aapl_market_simulator/
 
 This project is open source and available under the MIT License.
 
+## Contributors
+
+- benheller1994@gmail.com (Project author and maintainer)
+
