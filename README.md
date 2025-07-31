@@ -59,10 +59,11 @@ The simulation provides:
 
 ## Key Performance Indicators (KPIs)
 
-- **RMSE (Root Mean Squared Error)**: Measures prediction accuracy
-- **Trader Activity Rate**: Optimized parameter for market simulation
+- **RMSE (Root Mean Squared Error)**: Measures prediction accuracy (lower is better)
+- **Trader Activity Rate**: Optimized parameter for market simulation (controls how frequently traders place orders)
 - **Price Volatility**: Measured through moving averages and price trends
-- **Order Book Imbalance**: Ratio of buy/sell orders
+- **Order Book Imbalance**: Ratio of buy/sell orders (indicates market sentiment)
+- **Prediction Accuracy**: Percentage of price movements correctly predicted
 
 ## Project Structure
 

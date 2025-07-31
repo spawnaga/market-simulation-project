@@ -34,12 +34,9 @@ class OrderBook:
             return
 
         if is_buy:  # Buy order
-            print(f"  Buy order: price={price}, best_ask={self.best_ask}, condition: {price > self.best_ask}")
             if len(self.sell_book) > 0 and price > self.best_ask:
-                print("  -> Taking order")
                 self.take_order(price, quantity, is_buy)
             else:
-                print("  -> Making order")
                 self.make_order(price, quantity, is_buy)
         else:  # Sell order
             if len(self.buy_book) > 0 and price < self.best_bid:
@@ -187,7 +184,7 @@ class Trader:
         self.order_book.place_order(order['price'], order['quantity'], order['is_buy'])
 
     def determine_price(self):
-        """Determine order price based on market conditions"""
+        """Determine order price based on market conditions (matching C# logic)"""
         last_price = self.order_book.last_traded_price
         short_ma = self.order_book.ma_5
         long_ma = self.order_book.ma_25
@@ -196,18 +193,25 @@ class Trader:
         long_trend = (last_price - long_ma) / long_ma if long_ma != 0 else 0
 
         is_maker = self.rng.random() < self.order_book.proportion_maker
-        rand_factor = 1.0 + (self.rng.random() * 0.02 - 0.01)
+
+        # Match C# logic: +/-1% of lastPrice with random factor
+        rand_factor = 1.0 + (self.rng.random() * 0.02 - 0.01)  # +/-1% range
         rand_price = int(last_price * rand_factor + 0.5 * np.sign(rand_factor - 1))
 
         if is_maker:
             if rand_price > last_price:
+                # Maker selling (higher price)
                 return {'price': rand_price, 'quantity': self.rng.randint(1, 41), 'is_buy': False}
             else:
+                # Maker buying (lower price)
                 return {'price': rand_price, 'quantity': self.rng.randint(1, 41), 'is_buy': True}
         else:
+            # Taker logic: buy high, sell low (inefficient)
             if rand_price > last_price:
+                # Taker buying high (inefficient)
                 return {'price': rand_price, 'quantity': self.rng.randint(1, 21), 'is_buy': True}
             else:
+                # Taker selling low (inefficient)
                 return {'price': rand_price, 'quantity': self.rng.randint(1, 21), 'is_buy': False}
 
 class MarketSimulator:
@@ -273,12 +277,32 @@ class MarketSimulator:
             for trader in self.traders:
                 trader.try_place_orders()
 
-            # Use the actual close price for simulation (like in C#)
-            current_price = df['close'].iloc[i]
+            # Calculate simulated price based on order book dynamics
+            if len(self.order_book.buy_book) > 0 and len(self.order_book.sell_book) > 0:
+                # Use order book imbalance to determine price movement
+                if self.order_book.imbalance > 0:
+                    # More buy volume - price should increase
+                    price_change = (self.order_book.best_bid - current_price) * 0.1
+                else:
+                    # More sell volume - price should decrease
+                    price_change = (self.order_book.best_ask - current_price) * 0.1
+
+                # Add some randomness to simulate market noise
+                price_change += np.random.normal(0, 0.01 * current_price)
+
+                # Update price while keeping it reasonable
+                new_price = current_price + price_change
+                new_price = max(new_price, 0.95 * current_price)  # Don't let it drop too fast
+                new_price = min(new_price, 1.05 * current_price)  # Don't let it rise too fast
+
+                current_price = new_price
+            else:
+                # If no orders, use a small random walk
+                current_price += np.random.normal(0, 0.005 * current_price)
 
             # Record the trade
-            self.order_book.record_trade(current_price)
-            self.order_book.last_traded_price = current_price
+            self.order_book.record_trade(int(current_price))
+            self.order_book.last_traded_price = int(current_price)
             predictions.append(current_price)
 
         return np.array(predictions)
