@@ -83,5 +83,5 @@ This project is open source and available under the MIT License.
 
 ## Contributors
 
-- benheller1994@gmail.com (Project author and maintainer)
+- [bchi1994](https://github.com/bchi1994) (Project author and maintainer)
 
