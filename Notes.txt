@@ -1,0 +1,120 @@
+It's connected to a gpu chart renderer, but that's not important for the logic
+Here are the key parts of this script. Traders determine a new price for their trades based on +/-1% of lastPrice in the orderBook, and Takers always make ineffecient orders (buy high, sell low):
+
+private traderOrder DeterminePrice() {
+        float lastPrice = orderBook.lastTradedPrice;
+        int shortMA = orderBook.MA5;
+        int longMA = orderBook.MA25;
+        float shortTrend = (lastPrice - shortMA) / shortMA;
+        float longTrend = (lastPrice - longMA) / longMA;
+
+        bool Maker = rng.NextDouble() < orderBook.proportionMaker;
+        float randFactor = 1f + ((float)rng.NextDouble() * 0.02f - 0.01f);
+        int randP = Mathf.RoundToInt(lastPrice * randFactor + 0.5f * Mathf.Sign(randFactor - 1f));
+        if (Maker) {
+            if (randP > lastPrice)
+                return new traderOrder(randP, rng.Next(40) + 1, false);
+            else
+                return new traderOrder(randP, rng.Next(40) + 1, true);
+        } else {
+            if (randP > lastPrice)
+                return new traderOrder(randP, rng.Next(20) + 1, true);
+            else
+                return new traderOrder(randP, rng.Next(20) + 1, false);
+        }
+    }
+
+Orders are added to the orderBook, separated by buys and sells:
+
+public void PlaceOrder(int price, int quantity, bool isBuy) {
+        if (price > 0 && quantity > 0) {
+            if (isBuy) {//Buy
+                if (sellBook.Count > 0 && price > BestAsk)
+                    TakeOrder(price, quantity, isBuy);
+                else
+                    MakeOrder(price, quantity, isBuy);
+            } else {//Sell
+                if (buyBook.Count > 0 && price < BestBid)
+                    TakeOrder(price, quantity, isBuy);
+                else
+                    MakeOrder(price, quantity, isBuy);
+            }
+        }
+    }
+And Taker orders will run through the orderbook until the order quantity is exhausted:
+
+private void TakeOrder(int p, int q, bool b) {
+        int rQ = q;
+        lastTradedPrice = market.lastPrice;
+        int i = 0;
+
+        while (rQ > 0) {
+            i++;
+            if (b) {
+                if (sellBook.Count == 0) {
+                    BestAsk = int.MaxValue;
+                    break;
+                }
+                BestAsk = sellBook.Keys.First();
+
+                if (p < BestAsk)
+                    break;
+                int aQ = sellBook[BestAsk];
+                if (aQ > 0) {
+                    int tQ = Mathf.Min(aQ, rQ);
+                    sellBook[BestAsk] -= tQ;
+                    rQ -= tQ;
+                    totalBuyVolume -= tQ;
+                    lastTradedPrice = BestAsk;
+                    market.liveCandlestick.UpdateWithTrade(BestAsk, tQ);
+                    market.chart.UpdateLiveCandle(p, market.liveCandlestick.volume, market.liveCandlestick.high, market.liveCandlestick.low);
+
+                    if (sellBook[BestAsk] <= 0) {
+                        sellBook.Remove(BestAsk);
+                        BestAsk = sellBook.Count > 0 ? sellBook.Keys.First() : int.MaxValue;
+                    }
+                }
+            } else {
+                ...same but opposite for sells
+                }
+            }
+        }
+
+        market.lastPrice = lastTradedPrice;
+        if (totalBuyVolume + totalSellVolume > 0)
+            imbalance = (totalBuyVolume - totalSellVolume) / (totalBuyVolume + totalSellVolume);
+        else
+            imbalance = 0;
+
+        if (rQ > 0) {
+            MakeOrder(p, rQ, b);
+        }
+    }
+
+And Maker orders are just added to the orderBook. Unity has some weird key logic, I'm using a dictionary, but Pandas has some excellent array organizers where you can literally just search for a key in a list:
+
+private void MakeOrder(int price, int quantity, bool isBuy) {
+        if (isBuy) {
+            if (buyBook.ContainsKey(price)) {
+                if (buyBook[price] > 0)
+                    buyBook[price] += quantity;
+                else
+                    buyBook[price] = quantity;
+            } else
+                buyBook[price] = quantity;
+            totalBuyVolume += quantity;
+            if (price > BestBid)
+                BestBid = price;
+        } else {
+            if (sellBook.ContainsKey(price)) {
+                if (sellBook[price] > 0)
+                    sellBook[price] += quantity;
+                else
+                    sellBook[price] = quantity;
+            } else
+                sellBook[price] = quantity;
+            totalSellVolume += quantity;
+            if (price < BestAsk)
+                BestAsk = price;
+        }
+    }
