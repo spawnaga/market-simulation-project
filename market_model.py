@@ -255,11 +255,11 @@ class MarketSimulator:
         temp_simulator = MarketSimulator(temp_order_book, temp_traders)
 
         # Run a short simulation to evaluate parameters
-        predictions = temp_simulator.run_simulation(df.head(100), {
+        predictions = temp_simulator.run_simulation(df, {
             'trader_activity_rate': params[0],
             'proportion_maker': params[1]
         })
-        actual = df.head(100)['close'].values
+        actual = df['close'].values
         error = np.sqrt(np.mean((actual - predictions) ** 2))
         return error
 
@@ -306,5 +306,65 @@ class MarketSimulator:
             predictions.append(current_price)
 
         return np.array(predictions)
+
+    def run_multiple_simulations(self, df, window_size=30, prediction_size=5, num_simulations=1000):
+        """
+        Run multiple simulations to find best parameters and make predictions
+
+        Args:
+            df: DataFrame with historical data
+            window_size: Number of minutes to use for parameter optimization
+            prediction_size: Number of minutes to predict
+            num_simulations: Number of parameter combinations to test
+
+        Returns:
+            List of RMSE values for each prediction window
+        """
+        rmse_results = []
+        current_index = window_size
+
+        # Generate parameter grid
+        activity_rates = np.linspace(0.2, 2.0, num_simulations)
+        maker_proportions = np.linspace(0.1, 0.9, num_simulations)
+
+        while current_index + window_size + prediction_size <= len(df):
+            # Extract current window for optimization
+            optimization_window = df.iloc[current_index:current_index + window_size]
+
+            best_rmse = float('inf')
+            best_params = None
+
+            # Test different parameter combinations
+            for i in range(num_simulations):
+                params = {
+                    'trader_activity_rate': activity_rates[i],
+                    'proportion_maker': maker_proportions[i]
+                }
+
+                # Run simulation with these parameters
+                predictions = self.run_simulation(optimization_window, params)
+                actual = optimization_window['close'].values
+                rmse = np.sqrt(np.mean((actual - predictions) ** 2))
+
+                if rmse < best_rmse:
+                    best_rmse = rmse
+                    best_params = params
+
+            # Store the best RMSE for this window
+            rmse_results.append(best_rmse)
+
+            # Use best parameters to predict next window
+            prediction_window = df.iloc[current_index + window_size:current_index + window_size + prediction_size]
+            prediction = self.run_simulation(prediction_window, best_params)
+
+            # Compare to actual data
+            actual_next_window = df.iloc[current_index + window_size:current_index + window_size + prediction_size]['close'].values
+            prediction_rmse = np.sqrt(np.mean((actual_next_window - prediction) ** 2))
+            rmse_results.append(prediction_rmse)
+
+            # Move to next window
+            current_index += window_size + prediction_size
+
+        return rmse_results
 
 

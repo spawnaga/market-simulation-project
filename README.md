@@ -44,9 +44,14 @@ The project uses `AAPL_2024.csv` containing minute-level trading data with the f
    jupyter notebook market_simulator.ipynb
    ```
 
-2. Or run the simulation script directly:
+2. Run the enhanced simulation script:
    ```bash
    python market_simulator.py
+   ```
+
+3. For parameter optimization and prediction:
+   ```bash
+   python market_simulator.py --optimize
    ```
 
 ## Results
