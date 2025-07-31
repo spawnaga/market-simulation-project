@@ -333,7 +333,7 @@ class MarketSimulator:
 
         while current_index + window_size + prediction_size <= len(df):
             # Extract current window for optimization
-            optimization_window = df.iloc[current_index:current_index + window_size]
+            optimization_window = df.iloc[current_index - window_size:current_index]
 
             best_rmse = float('inf')
             best_params = None
@@ -359,16 +359,16 @@ class MarketSimulator:
             rmse_results.append(best_rmse)
 
             # Use best parameters to predict next window
-            prediction_window = df.iloc[current_index + window_size:current_index + window_size + prediction_size]
+            prediction_window = df.iloc[current_index:current_index + prediction_size]
             prediction = self.run_simulation(prediction_window, best_params)
 
             # Compare to actual data
-            actual_next_window = df.iloc[current_index + window_size:current_index + window_size + prediction_size]['close'].values
+            actual_next_window = df.iloc[current_index:current_index + prediction_size]['close'].values
             prediction_rmse = np.sqrt(np.mean((actual_next_window - prediction) ** 2))
             rmse_results.append(prediction_rmse)
 
-            # Move to next window
-            current_index += window_size + prediction_size
+            # Move to next window (sliding window approach)
+            current_index += prediction_size
 
         return rmse_results
 

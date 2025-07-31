@@ -55,10 +55,10 @@ To ensure realistic market conditions, the simulation:
 
 ### Simulation Windows
 
-The simulation uses a rolling window approach:
+The simulation uses a sliding window approach:
 - **30-minute optimization window**: Used to find best parameters
 - **5-minute prediction window**: Uses optimized parameters to make predictions
-- **Continuous rolling**: Moves forward by 35 minutes (30 + 5) for each iteration
+- **Sliding window**: Moves forward by 5 minutes for each iteration (overlapping windows)
 
 ## Data Preparation
 
@@ -91,7 +91,7 @@ The simulation was run with the following parameters:
 
 | Metric                      | Value       |
 |-----------------------------|-------------|
-| **Total prediction windows**| 120         |
+| **Total prediction windows**| 852         |
 | **Average optimization RMSE**| 5.41        |
 | **Average prediction RMSE** | 4.53        |
 | **Best window RMSE**        | 1.01        |
@@ -190,6 +190,24 @@ The simulation is implemented in Python with the following key components:
 - **RMSE Over Time**: Time series of prediction errors
 - **Price Trends**: Historical price movements with moving averages
 - **Trader Behavior**: Analysis of maker vs taker order patterns
+
+### 🎯 Window Calculation Explanation
+
+**Why 852 Windows vs 120 Windows?**
+
+There was a discrepancy in the window calculations:
+
+**Original Approach (120 windows):**
+- **Window Structure**: 35 minutes (30 optimization + 5 prediction)
+- **Window Progression**: Moves forward 35 minutes for each iteration
+- **Mathematical Limit**: 4260 minutes / 35 minutes per window ≈ 120 windows
+
+**New Sliding Window Approach (852 windows):**
+- **Window Structure**: 5 minutes (prediction window only)
+- **Window Progression**: Moves forward 5 minutes for each iteration
+- **Mathematical Limit**: 4260 minutes / 5 minutes per window = 852 windows
+
+The sliding window approach provides more granular predictions by overlapping windows, allowing the simulation to make predictions every 5 minutes based on the most recent 30 minutes of data.
 
 For detailed code and results, please visit the GitHub repository: [https://github.com/spawnaga/market-simulation-project](https://github.com/spawnaga/market-simulation-project)
 
